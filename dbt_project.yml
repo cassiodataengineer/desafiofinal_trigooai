@@ -1,0 +1,40 @@
+name: 'covid_2021'
+version: '1.0.0'
+config-version: 2
+
+profile: 'default'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  covid_2021:
+    +materialized: view
+    +schema: gold
+
+    dimensions:
+      +materialized: table
+      +schema: dimensions
+
+    facts:
+      +materialized: incremental
+      +schema: facts
+
+    staging:
+      +materialized: view
+      +schema: bronze
+
+on-run-start:
+  - "{{ log('Iniciando execução do dbt em ' ~ run_started_at, info=true) }}"
+
+on-run-end:
+  - "{{ log('Execução do dbt finalizada em ' ~ run_started_at, info=true) }}"
