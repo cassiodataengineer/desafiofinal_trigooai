@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: bronze_source
-    database: COVID_2021
+    database: COVID19
     schema: BRONZE
     tables:
       - name: RAW_LEITO_OCUPACAO_2021
