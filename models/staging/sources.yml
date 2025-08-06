@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: bronze_source # Seu grupo de fontes existente
+    database: COVID_2021
+    schema: BRONZE # O esquema onde as tabelas brutas estão
+    tables:
+      - name: 'RAW_LEITO_OCUPACAO_2021'
+      - name: 'RAW_MUNICIPIOS_IBGE'
+      - name: 'RAW_ESTABELECIMENTOS_CNES'
+      - name: 'RAW_LEITO_OCUPACAO_2020' # NOVO: Tabela bruta de 2020
+      - name: 'RAW_LEITO_OCUPACAO_2022' # NOVO: Tabela bruta de 2022
