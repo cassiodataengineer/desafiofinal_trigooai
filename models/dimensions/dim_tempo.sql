@@ -1,6 +1,6 @@
 WITH date_spine AS (
  SELECT DISTINCT DATE(data_notificacao) AS data
- FROM {{ ref('stg_leito_ocupacao_2021') }}
+ FROM {{ ref('stg_leito_ocupacao_consolidado') }}
  WHERE data_notificacao IS NOT NULL
 )
 SELECT

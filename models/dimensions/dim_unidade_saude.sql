@@ -1,7 +1,7 @@
 WITH unidades_distintas AS (
  SELECT DISTINCT
  TRIM(cnes) AS cnes
- FROM {{ ref('stg_leito_ocupacao_2021') }}
+ FROM {{ ref('stg_leito_ocupacao_consolidado') }}
  WHERE cnes IS NOT NULL AND cnes != ''
 )
 SELECT
