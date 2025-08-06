@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: bronze_source # Seu grupo de fontes existente
-    database: COVID_2021
+    database: COVID19
     schema: BRONZE # O esquema onde as tabelas brutas estão
     tables:
       - name: 'RAW_LEITO_OCUPACAO_2021'
