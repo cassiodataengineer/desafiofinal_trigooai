@@ -1,11 +1,13 @@
 version: 2
 
 sources:
-  - name: covid_2021
+  - name: bronze_source
     database: COVID_2021
     schema: BRONZE
     tables:
-      - name: stg_leito_ocupacao_2021
+      - name: RAW_LEITO_OCUPACAO_2021
+      - name: RAW_MUNICIPIOS_IBGE
+      - name: RAW_ESTABELECIMENTOS_CNES
 
 models:
   - name: dim_tempo

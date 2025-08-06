@@ -3,7 +3,7 @@ WITH localidades_distintas AS (
  COALESCE(estado_notificacao, estado, 'Desconhecido') AS estado,
  COALESCE(municipio_notificacao, municipio, 'Desconhecido') AS
 municipio
- FROM {{ ref('stg_leito_ocupacao_2021') }}
+ FROM {{ ref('stg_leito_ocupacao_consolidado') }}
  WHERE estado IS NOT NULL OR municipio IS NOT NULL
 )
 SELECT
