@@ -690,4 +690,3 @@ A inclusão e o tratamento de dados de múltiplos anos (2020, 2021, 2022) de for
 
 Essas inovações, combinadas com as melhores práticas de engenharia de dados, garantem que o projeto não apenas atenda aos requisitos atuais de análise, mas também seja escalável e adaptável a futuras necessidades e desafios no campo da saúde pública.
 
-Segue o link do Projeto DBT para análise do projeto - https://kk400.us1.dbt.com/accounts/70471823483193/develop/70471824046419/docs/index.html#!/overview 
