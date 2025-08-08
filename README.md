@@ -2,7 +2,7 @@ Projeto COVID-19: Análise de Ocupação de Leitos com dbt e Snowflake
 
 1. Introdução 
 
-Este documento detalha o projeto de análise de ocupação de leitos hospitalares relacionados à COVID-19, utilizando dbt (data build tool) para transformações de dados e Snowflake como data warehouse. O objetivo principal é consolidar e preparar dados brutos de ocupação de leitos de diversos anos (2020, 2021 e 2022) em um formato estruturado e otimizado para análises, relatórios e dashboards. A metodologia empregada garante a qualidade, consistência e acessibilidade dos dados, permitindo uma compreensão aprofundada da dinâmica de ocupação de leitos ao longo do tempo. A documentação completa do dbt para este projeto pode ser acessada em: (https://kk400.us1.dbt.com/accounts/70471823483193/develop/70471824053089/docs/index.html#!/overview/dbt_utils)
+Este documento detalha o projeto de análise de ocupação de leitos hospitalares relacionados à COVID-19, utilizando dbt (data build tool) para transformações de dados e Snowflake como data warehouse. O objetivo principal é consolidar e preparar dados brutos de ocupação de leitos de diversos anos (2020, 2021 e 2022) em um formato estruturado e otimizado para análises, relatórios e dashboards. A metodologia empregada garante a qualidade, consistência e acessibilidade dos dados, permitindo uma compreensão aprofundada da dinâmica de ocupação de leitos ao longo do tempo. A documentação completa do dbt para este projeto pode ser acessada em: https://kk400.us1.dbt.com/accounts/70471823483193/develop/70471824053408/docs/index.html#!/overview
 
 2. Visão Geral do Projeto 
 
