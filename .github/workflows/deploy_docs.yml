@@ -1,0 +1,56 @@
+name: Deploy dbt Docs to GitHub Pages
+
+on:
+  # Roda este workflow toda vez que houver um push na branch 'main'
+  push:
+    branches:
+      - main
+  # Permite que você rode este workflow manualmente pela aba Actions do GitHub
+  workflow_dispatch:
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt and dependencies
+        run: |
+          pip install dbt-snowflake
+          dbt deps
+
+      - name: Create dbt profiles.yml from GitHub Secrets
+        run: |
+          mkdir -p ~/.dbt
+          echo "default:" > ~/.dbt/profiles.yml
+          echo "  target: dev" >> ~/.dbt/profiles.yml
+          echo "  outputs:" >> ~/.dbt/profiles.yml
+          echo "    dev:" >> ~/.dbt/profiles.yml
+          echo "      type: snowflake" >> ~/.dbt/profiles.yml
+          echo "      account: ${{ secrets.SNOWFLAKE_ACCOUNT }}" >> ~/.dbt/profiles.yml
+          echo "      user: ${{ secrets.SNOWFLAKE_USER }}" >> ~/.dbt/profiles.yml
+          echo "      password: ${{ secrets.SNOWFLAKE_PASSWORD }}" >> ~/.dbt/profiles.yml
+          echo "      role: ${{ secrets.SNOWFLAKE_ROLE }}" >> ~/.dbt/profiles.yml
+          echo "      database: ${{ secrets.SNOWFLAKE_DATABASE }}" >> ~/.dbt/profiles.yml
+          echo "      warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}" >> ~/.dbt/profiles.yml
+          echo "      schema: ${{ secrets.SNOWFLAKE_SCHEMA }}" >> ~/.dbt/profiles.yml
+          echo "      threads: 1" >> ~/.dbt/profiles.yml
+
+      - name: Generate dbt docs
+        run: dbt docs generate
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.DBT_GITHUB_TOKEN }}
+          publish_dir: ./target
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'cassiodataengineer'
+          user_email: 'viziqnexusai@gmail.com'
