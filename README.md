@@ -253,7 +253,7 @@ A organização do projeto dbt segue as convenções padrão, o que facilita a n
 ```
 6. Componentes Essenciais do Projeto 
 
-Cada arquivo e diretório no projeto dbt desempenha um papel crucial na orquestração e execução das transformações de dados. Compreender a função de cada componente é fundamental para a manutenção e o desenvolvimento contínuo do projeto. A seguir, detalhamos os principais arquivos e sua importância no fluxo de trabalho do dbt. 
+Cada arquivo e diretório no projeto dbt desempenha um papel crucial na orquestração e execução das transformações de dados. Compreender a função de cada componente é fundamental para a manutenção e o desenvolvimento contínuo do projeto. A seguir, os principais arquivos e sua importância no fluxo de trabalho do dbt. 
 
 6.1. dbt_project.yml : O Coração do Projeto 
 
