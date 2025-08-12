@@ -129,25 +129,26 @@ UPDATED_AT TIMESTAMP_NTZ(9)
 
 ```
 -- Tabela para os dados brutos de Municípios IBGE CREATE OR REPLACE TABLE COVID19.BRONZE.RAW_MUNICIPIOS_IBGE ( CODIGO_MUNICIPIO VARCHAR(16777216), 
-
+```sql
 NOME_MUNICIPIO VARCHAR(16777216), 
 UF VARCHAR(16777216), 
 ); 
 CODIGO_UF VARCHAR(16777216) 
-
+```
 -- Tabela para os dados brutos de Estabelecimentos 
-
+```sql
 CNES CREATE OR REPLACE TABLE COVID19.BRONZE.RAW_ESTABELECIMENTOS_CNES ( CO_CNES VARCHAR(16777216), 
 NO_FANTASIA VARCHAR(16777216), 
 TP_GESTAO VARCHAR(16777216), 
 ); 
 CO_CEP VARCHAR(16777216) 
-
+```
 4.2. Carregamento de Dados (COPY INTO) 
 
 Após a criação das tabelas RAW, os dados são carregados a partir dos arquivos CSV localizados em estágios do Snowflake. O comando COPY INTO é otimizado para carregamento em massa e oferece opções para tratamento de erros e formatação de arquivos. É importante configurar corretamente o FILE_FORMAT para garantir que os dados sejam interpretados corretamente. A opção ON_ERROR = 'CONTINUE' é particularmente útil para ambientes de desenvolvimento, permitindo que o carregamento continue mesmo que algumas linhas apresentem erros, que podem ser investigados posteriormente.
 
 -- Carregar dados para a tabela RAW_LEITO_OCUPACAO_2020 COPY INTO COVID19.BRONZE.RAW_LEITO_OCUPACAO_2020 
+```sql
 FROM @COVID19.BRONZE.LEITO_OCUPACAO/esus-vepi.LeitoOcupacao_2020.csv FILE_FORMAT = ( 
 TYPE = CSV, 
 FIELD_DELIMITER = 
@@ -156,9 +157,9 @@ EMPTY_FIELD_AS_NULL = TRUE
 
 ); 
 ON_ERROR = 'CONTINUE' 
-
+```
 -- Carregar dados para a tabela 
-
+```sql
 RAW_LEITO_OCUPACAO_2021 COPY INTO COVID19.BRONZE.RAW_LEITO_OCUPACAO_2021 
 FROM @COVID19.BRONZE.LEITO_OCUPACAO/esus-vepi.LeitoOcupacao_2021.csv FILE_FORMAT = ( 
 TYPE = CSV, 
@@ -167,9 +168,9 @@ SKIP_HEADER = 1,
 EMPTY_FIELD_AS_NULL = TRUE 
 ); 
 ON_ERROR = 'CONTINUE' 
-
+```
 -- Carregar dados para a tabela 
-
+```sql
 RAW_LEITO_OCUPACAO_2022 
 COPY INTO COVID19.BRONZE.RAW_LEITO_OCUPACAO_2022 
 FROM @COVID19.BRONZE.LEITO_OCUPACAO/esus-vepi.LeitoOcupacao_2022.csv 
@@ -180,9 +181,9 @@ SKIP_HEADER = 1,
 EMPTY_FIELD_AS_NULL = TRUE 
 ON_ERROR = 'CONTINUE' 
 ); 
-
+```
 -- Carregar dados para a tabela 
-
+```sql
 RAW_MUNICIPIOS_IBGE 
 COPY INTO COVID19.BRONZE.RAW_MUNICIPIOS_IBGE 
 FROM @COVID19.BRONZE.LEITO_OCUPACAO/municipios.csv 
@@ -193,9 +194,9 @@ SKIP_HEADER = 1,
 EMPTY_FIELD_AS_NULL = TRUE 
 ON_ERROR = 'CONTINUE' 
 ); 
-
+```
 -- Carregar dados para a tabela 
-
+```sql
 RAW_ESTABELECIMENTOS_CNES 
 COPY INTO COVID19.BRONZE.RAW_ESTABELECIMENTOS_CNES 
 FROM @COVID19.BRONZE.LEITO_OCUPACAO/cnes_estabelecimentos.csv 
@@ -206,24 +207,25 @@ SKIP_HEADER = 1,
 EMPTY_FIELD_AS_NULL = TRUE 
 ON_ERROR = 'CONTINUE' 
 ); 
-
+```
 4.3. Concessão de Privilégios 
 Para que o dbt possa acessar as tabelas RAW e realizar as transformações, é necessário conceder os privilégios de leitura adequados às roles utilizadas pelo dbt no Snowflake. A segurança dos dados é primordial, e a concessão de privilégios mínimos necessários (princípio do menor privilégio) é uma prática recomendada. Neste caso, o privilégio SELECT é suficiente para que o dbt possa ler os dados das tabelas BRONZE .
 
 -- Conceder privilégios de seleção nas tabelas RAW de ocupação de leitos 
-
+```sql
 GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2020 TO ROLE PC_DBT_DB_PICKER_ROLE; GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2020 TO ROLE PC_DBT_ROLE; 
 GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2021 TO ROLE PC_DBT_DB_PICKER_ROLE; GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2021 TO ROLE PC_DBT_ROLE; 
 GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2022 TO ROLE PC_DBT_DB_PICKER_ROLE; GRANT SELECT ON TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2022 TO ROLE PC_DBT_ROLE; 
-
+```
 -- Conceder privilégios de seleção nas tabelas RAW de enriquecimento 
-
+```sql
 GRANT SELECT ON TABLE COVID19.BRONZE.RAW_MUNICIPIOS_IBGE TO ROLE PC_DBT_DB_PICKER_ROLE; GRANT SELECT ON TABLE COVID19.BRONZE.RAW_MUNICIPIOS_IBGE TO ROLE PC_DBT_ROLE; 
 GRANT SELECT ON TABLE COVID19.BRONZE.RAW_ESTABELECIMENTOS_CNES TO ROLE PC_DBT_DB_PICKER_ROLE; GRANT SELECT ON TABLE COVID19.BRONZE.RAW_ESTABELECIMENTOS_CNES TO ROLE PC_DBT_ROLE; 
-
+```
 5. Estrutura do Projeto dbt 
 
 A organização do projeto dbt segue as convenções padrão, o que facilita a navegação e a manutenção do código. A estrutura de pastas é lógica e reflete as diferentes etapas do pipeline de transformação de dados. Cada diretório tem um propósito específico, garantindo que os modelos, macros e testes sejam facilmente localizados e gerenciados. A clareza na estrutura do projeto é vital para a colaboração em equipe e para a escalabilidade do projeto. 
+```sql
 . 
 ├── dbt_project.yml # Configurações gerais do projeto dbt. 
 ├── macros/ # Macros SQL reutilizáveis. 
@@ -248,14 +250,16 @@ A organização do projeto dbt segue as convenções padrão, o que facilita a n
 └── tests/ # Testes de qualidade de dados. 
 ├── test_no_future_dates.sql # Exemplo de teste de data. 
 └── schema.yml # Documentação e testes para os modelos. 
-
+```
 6. Componentes Essenciais do Projeto 
 
 Cada arquivo e diretório no projeto dbt desempenha um papel crucial na orquestração e execução das transformações de dados. Compreender a função de cada componente é fundamental para a manutenção e o desenvolvimento contínuo do projeto. A seguir, detalhamos os principais arquivos e sua importância no fluxo de trabalho do dbt. 
 
 6.1. dbt_project.yml : O Coração do Projeto 
 
-O arquivo dbt_project.yml é o arquivo de configuração central do projeto dbt. Ele define metadados do projeto, como nome e versão, e especifica caminhos para os diferentes tipos de arquivos (modelos, macros, testes). Mais importante, ele configura como os modelos serão materializados (ou seja, como as tabelas e views serão criadas no data warehouse) para cada camada de dados. A materialização pode ser definida como view , table ,
+O arquivo dbt_project.yml é o arquivo de configuração central do projeto dbt. Ele define metadados do projeto, como nome e versão, e especifica caminhos para os diferentes tipos de arquivos (modelos, macros, testes). Mais importante, ele configura como os modelos serão materializados (ou seja, como as tabelas e views serão criadas no data warehouse) para cada camada de dados. A materialização pode ser definida como 
+```sql
+view , table ,
 incremental , ou ephemeral , cada uma com suas vantagens e desvantagens em termos de performance e custo. A configuração explícita de esquemas para cada camada ( bronze , silver , gold ) garante a organização e a separação lógica dos dados. 
 name: 'COVID19' 
 version: '1.0.0' 
@@ -285,7 +289,7 @@ dimensions:
 facts: 
 +materialized: incremental 
 +schema: gold 
-
+```
 6.2. macros/generate_schema_name.sql : Gerenciamento Dinâmico de Esquemas 
 
 Esta macro personalizada é responsável por definir dinamicamente o nome do esquema onde cada modelo será materializado. Ela utiliza a variável custom_schema_name definida no dbt_project.yml para direcionar os modelos para os esquemas bronze , silver ou gold . A flexibilidade desta macro permite que o projeto mantenha uma estrutura de esquemas consistente e padronizada, independentemente do ambiente (desenvolvimento, staging, produção). Isso é particularmente útil em ambientes multi-usuário ou multi-ambiente, onde diferentes esquemas podem ser necessários para isolar dados ou testar novas funcionalidades. 
@@ -295,7 +299,7 @@ Esta macro define como os nomes dos esquemas serão gerados.
 - custom_schema_name: O nome do esquema que definimos no dbt_project.yml 
 
 (ex: 'bronze', 'silver', 'gold'). 
-
+```sql
 - node: O objeto que representa o modelo atual que está sendo construído. 
 #} 
 {% set default_schema = target.schema -%} 
@@ -305,12 +309,12 @@ Esta macro define como os nomes dos esquemas serão gerados.
 {{ custom_schema_name | trim }} 
 {%-endif-%} 
 {%- endmacro %} 
-
+```
 6.3. models/staging/sources.yml : Definição das Fontes de Dados 
 
 O arquivo sources.yml é crucial para declarar as fontes de dados brutas que o dbt utilizará. Ele mapeia as tabelas existentes no Snowflake (neste caso, as tabelas RAW na camada BRONZE ) para que o dbt possa referenciá-las de forma segura e organizada. A declaração de fontes permite que o dbt construa um grafo de dependências completo, desde os dados brutos até os modelos finais, e também facilita a documentação automática e a
 aplicação de testes de integridade de dados nas fontes. A inclusão dos dados de 2020, 2021 e 2022 neste arquivo garante que todas as fontes necessárias estejam disponíveis para as transformações subsequentes. 
-
+```sql
 version: 2 
 sources: 
 - name: bronze_source 
@@ -322,7 +326,7 @@ tables:
 - name: RAW_ESTABELECIMENTOS_CNES 
 - name: RAW_LEITO_OCUPACAO_2020 
 - name: RAW_LEITO_OCUPACAO_2022 
-
+```
 6.4. Modelos de Staging ( stg_leito_ocupacao_XXXX.sql ) 
 
 Os modelos na pasta staging são responsáveis pela primeira etapa de transformação dos dados brutos. Cada arquivo stg_leito_ocupacao_XXXX.sql (para 2020, 2021 e 2022) seleciona as colunas relevantes, renomeia-as para um padrão consistente e aplica limpezas básicas, como a conversão de tipos de dados e o tratamento de valores nulos ( COALESCE ). A adição da coluna ano_dados é fundamental para identificar a origem temporal de cada registro, permitindo a consolidação posterior. A cláusula WHERE excluido = FALSE garante que apenas os registros válidos sejam considerados nas etapas seguintes, melhorando a qualidade dos dados desde o início. 
