@@ -332,7 +332,7 @@ tables:
 Os modelos na pasta staging são responsáveis pela primeira etapa de transformação dos dados brutos. Cada arquivo stg_leito_ocupacao_XXXX.sql (para 2020, 2021 e 2022) seleciona as colunas relevantes, renomeia-as para um padrão consistente e aplica limpezas básicas, como a conversão de tipos de dados e o tratamento de valores nulos ( COALESCE ). A adição da coluna ano_dados é fundamental para identificar a origem temporal de cada registro, permitindo a consolidação posterior. A cláusula WHERE excluido = FALSE garante que apenas os registros válidos sejam considerados nas etapas seguintes, melhorando a qualidade dos dados desde o início. 
 
 -- models/staging/stg_leito_ocupacao_2020.sql 
-
+```sql
 SELECT 
 _id AS id_registro, 
 TO_TIMESTAMP_NTZ(data_notificacao) AS data_notificacao, 
@@ -362,7 +362,7 @@ updated_at,
 2020 AS ano_dados 
 FROM {{ source('bronze_source', 'RAW_LEITO_OCUPACAO_2020') }} 
 WHERE excluido = FALSE 
-
+```
 -- Modelos similares para 2021 e 2022 
 
 (stg_leito_ocupacao_2021.sql e stg_leito_ocupacao_2022.sql) -- A estrutura é idêntica, alterando apenas a fonte de dados e o valor de 'ano_dados'. 
@@ -372,7 +372,7 @@ Este modelo é responsável por unificar os dados de ocupação de leitos de tod
 dbt_project.yml ) garante que os dados estejam sempre atualizados com as últimas informações de cada ano, sem duplicar o armazenamento físico. 
 
 -- models/staging/stg_leito_ocupacao_consolidado.sql 
-
+```sql
 SELECT * 
 FROM {{ ref('stg_leito_ocupacao_2020') }} 
 UNION ALL 
@@ -381,11 +381,12 @@ FROM {{ ref('stg_leito_ocupacao_2021') }}
 UNION ALL 
 SELECT * 
 FROM {{ ref('stg_leito_ocupacao_2022') }} 
-
+```
 6.6. int_leitos_ocupacao_unificado.sql : Enriquecimento e Unificação Intermediária 
 O modelo int_leitos_ocupacao_unificado.sql na camada intermediate (SILVER) é onde o enriquecimento e a unificação mais complexa dos dados ocorrem. Ele une os dados consolidados de ocupação de leitos com as tabelas de referência de municípios e estabelecimentos CNES. Isso adiciona informações contextuais importantes, como nome do município, UF, nome fantasia do hospital e tipo de gestão. A utilização de LEFT JOIN garante que todos os registros de ocupação de leitos sejam mantidos, mesmo que não haja correspondência nas tabelas de referência. Este modelo é materializado como uma table , o que significa que os resultados são persistidos no Snowflake, otimizando o desempenho para consultas subsequentes. 
 
 -- models/intermediate/int_leitos_ocupacao_unificado.sql 
+```sql
 SELECT 
 stg.id_registro, 
 stg.data_notificacao, 
@@ -422,14 +423,14 @@ LEFT JOIN {{ source('bronze_source', 'RAW_MUNICIPIOS_IBGE') }} mun
 ON stg.municipio = mun.NOME_MUNICIPIO -- Assumindo que 'municipio' em stg corresponde a 'NOME_MUNICIPIO' em RAW_MUNICIPIOS_IBGE 
 LEFT JOIN {{ source('bronze_source', 'RAW_ESTABELECIMENTOS_CNES') }} estab 
 ON stg.cnes = estab.CO_CNES 
-
+```
 6.7. Modelos de Dimensão ( dimensions/ ) 
 
 Os modelos de dimensão na camada GOLD fornecem o contexto para as métricas de ocupação de leitos. Cada dimensão é uma tabela que contém atributos descritivos e não voláteis. Por exemplo, dim_cnes contém informações sobre os estabelecimentos de saúde, dim_data sobre as datas, e dim_localidade sobre as
 localizações geográficas. A criação de dimensões separadas promove a reusabilidade e a consistência dos dados, além de otimizar o desempenho de consultas ao permitir que as ferramentas de BI filtrem e agrupem dados de forma eficiente. Todos os modelos de dimensão são materializados como table . 
 
 -- Exemplo: models/dimensions/dim_data.sql 
-
+```sql
 SELECT 
 DISTINCT data_notificacao AS data_completa, 
 YEAR(data_notificacao) AS ano, 
@@ -441,7 +442,7 @@ QUARTER(data_notificacao) AS trimestre,
 TO_CHAR(data_notificacao, 'YYYY-MM') AS ano_mes 
 FROM {{ ref('int_leitos_ocupacao_unificado') }} 
 ORDER BY data_completa 
-
+```
 -- Modelos similares para outras dimensões (dim_cnes, dim_localidade, etc.) 
 
 6.8. Modelo de Fato ( fact_ocupacao_leitos.sql ) 
@@ -449,6 +450,7 @@ O modelo fact_ocupacao_leitos.sql é o coração da camada GOLD , contendo as m�
 fornecendo uma visão consolidada da situação dos leitos. 
 
 -- models/facts/fact_ocupacao_leitos.sql 
+```sql
 {{ config( 
 materialized='incremental', 
 unique_key=['data_notificacao', 'cnes'], 
@@ -475,14 +477,14 @@ FROM {{ ref('int_leitos_ocupacao_unificado') }}
 WHERE data_notificacao > (SELECT MAX(data_notificacao) FROM {{ this }}) 
 {% endif %} 
 GROUP BY 1, 2 
-
+```
 6.9. Testes de Qualidade de Dados ( tests/ ) 
 
 Os testes de qualidade de dados são essenciais para garantir a confiabilidade e a integridade das informações transformadas. O dbt permite a criação de testes genéricos (como not_null , unique , accepted_values ) e testes personalizados. O arquivo schema.yml é utilizado para definir testes para colunas específicas dos modelos, enquanto arquivos .sql separados podem ser usados para testes mais complexos. O teste
 test_no_future_dates.sql é um exemplo de teste personalizado que verifica se não há datas futuras nos dados, garantindo a validade temporal. A execução regular desses testes é uma parte fundamental da governança de dados. 
 
 # tests/schema.yml 
-
+```sql
 version: 2 
 models: 
 - name: fact_ocupacao_leitos 
@@ -499,14 +501,14 @@ name: "no_future_dates"
 tests: 
 - not_null 
 - unique 
-
+```
 # tests/test_no_future_dates.sql (teste personalizado) 
-
+```sql
 SELECT 
 data_notificacao 
 FROM {{ ref('fact_ocupacao_leitos') }} 
 WHERE data_notificacao > CURRENT_DATE() 
-
+```
 7. Pré-requisitos e Configuração 
 Para replicar e executar este projeto, os seguintes pré-requisitos e configurações são necessários: 
 Snowflake: Uma conta Snowflake ativa com as permissões necessárias para criar bancos de dados, esquemas, tabelas e stages. 
@@ -533,7 +535,7 @@ bash dbt run Este comando executará todos os modelos do projeto na ordem corret
 8.6. Executar Testes dbt: Para verificar a qualidade dos dados e a integridade das transformações, execute: bash dbt test Este comando executará todos os testes definidos no projeto, reportando quaisquer falhas. 
 
 8.7. Gerar Documentação dbt: Para gerar a documentação interativa do projeto (que pode ser acessada via navegador), execute: 
-bash dbt docs generate dbt docs serve O comando dbt docs serve iniciará um servidor web local que hospeda a documentação. O link para a documentação online do dbt deste projeto é: https://kk400.us1.dbt.com/accounts/70471823483193/develop/70471824046419/docs/index.html#!/overview 
+bash dbt docs generate dbt docs serve O comando dbt docs serve iniciará um servidor web local que hospeda a documentação. O link para a documentação online do dbt deste projeto é: (https://cassiodataengineer.github.io/desafiofinal_trigooai/#!/overview)
 
 9. Decisões de Design e Justificativas 
 
@@ -599,7 +601,7 @@ Essas decisões de design, em conjunto, formam a base de um pipeline de dados ro
 Um dos insights mais relevantes que podem ser obtidos a partir dos dados transformados é a identificação de picos de ocupação de leitos de UTI por COVID-19 em diferentes regiões ao longo do tempo. Esta informação é vital para o planejamento de recursos, alocação de equipes médicas e implementação de medidas de contenção da pandemia. 
 
 Considere a seguinte consulta SQL na camada GOLD, que busca a média diária de ocupação de leitos de UTI por COVID-19 por estado e mês, para o ano de 2021: 
-
+```sql
 WITH hospital_metrics AS (
     SELECT
         dc.nm_estabelecimento,
@@ -636,7 +638,7 @@ WHERE
 ORDER BY
     taxa_alta_percentual DESC
 LIMIT 5;
-
+```
 O código SQL fornecido gera um insight focado na performance e na gravidade dos casos tratados em diferentes estabelecimentos de saúde. Ao contrário do exemplo dado, que foca em picos de ocupação geográfica e temporal, esta consulta se concentra em métricas de resultado hospitalar.
 
 Insight Gerado:
