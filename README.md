@@ -35,7 +35,7 @@ COPY INTO para carregamento inicial, a utilização de Snowflake Tasks e Streams
 As tabelas RAW são as primeiras a serem criadas no esquema BRONZE do Snowflake. Elas espelham a estrutura dos arquivos CSV de origem, garantindo que todos os campos sejam capturados sem perda de informação. A definição de tipos de dados apropriados é crucial nesta etapa para evitar erros durante o carregamento. Exemplos de criação de tabelas para dados de ocupação de leitos e tabelas de referência são fornecidos abaixo:
 
 -- Tabela para os dados brutos de 2020 
-
+```sql
 CREATE OR REPLACE TABLE 
 COVID19.BRONZE.RAW_LEITO_OCUPACAO_2020 ( UNNAMED_O NUMBER(38,0), 
 _ID VARCHAR(16777216), 
@@ -64,10 +64,11 @@ VALIDADO BOOLEAN,
 CREATED_AT TIMESTAMP_NTZ(9), 
 
 ); 
-UPDATED_AT TIMESTAMP_NTZ(9) 
+UPDATED_AT TIMESTAMP_NTZ(9)
+```
 
 -- Tabela para os dados brutos de 2021 
-'''sql
+```sql
 CREATE OR REPLACE TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2021 ( UNNAMED_O NUMBER(38,0), 
 _ID VARCHAR(16777216), 
 DATA_NOTIFICACAO TIMESTAMP_NTZ(9), 
@@ -95,10 +96,10 @@ VALIDADO BOOLEAN,
 CREATED_AT TIMESTAMP_NTZ(9), 
 UPDATED_AT TIMESTAMP_NTZ(9) 
 ); 
-'''
+```
 
 -- Tabela para os dados brutos de 2022 
-
+```sql
 CREATE OR REPLACE TABLE COVID19.BRONZE.RAW_LEITO_OCUPACAO_2022 ( UNNAMED_O NUMBER(38,0), 
 _ID VARCHAR(16777216), 
 DATA_NOTIFICACAO TIMESTAMP_NTZ(9), 
@@ -126,6 +127,7 @@ VALIDADO BOOLEAN,
 CREATED_AT TIMESTAMP_NTZ(9), 
 UPDATED_AT TIMESTAMP_NTZ(9) 
 
+```
 -- Tabela para os dados brutos de Municípios IBGE CREATE OR REPLACE TABLE COVID19.BRONZE.RAW_MUNICIPIOS_IBGE ( CODIGO_MUNICIPIO VARCHAR(16777216), 
 
 NOME_MUNICIPIO VARCHAR(16777216), 
