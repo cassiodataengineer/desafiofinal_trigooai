@@ -24,13 +24,15 @@ A camada SILVER é onde as transformações intermediárias e o enriquecimento d
 
 A camada GOLD é a camada final e de consumo, onde os dados são apresentados em um formato otimizado para análise e relatórios. Nesta camada, os dados são modelados em tabelas de fatos e dimensões, seguindo os princípios da modelagem dimensional. As tabelas de fatos contêm as métricas quantitativas (e.g., número de leitos ocupados, óbitos), enquanto as tabelas de dimensão fornecem o contexto descritivo (e.g., data, localização, tipo de ocupação). Esta estrutura facilita a navegação e a consulta dos dados por analistas de negócio e ferramentas de BI, permitindo a criação de dashboards e relatórios de forma eficiente e intuitiva. A camada GOLD é a interface direta para a tomada de decisões baseada em dados. 
 
-4. Ingestão e Automação de Dados (Snowflake) 
+4. Como Executar o Projeto
+
+4.1 Ingestão e Automação de Dados (Snowflake) 
 
 A ingestão de dados para o Snowflake é um passo crítico no pipeline, garantindo que os dados brutos estejam disponíveis para as transformações do dbt. Utilizamos scripts SQL para criar as tabelas RAW na camada BRONZE e carregar os dados a partir de arquivos CSV armazenados em estágios (stages) do Snowflake. A automação deste processo é fundamental para manter os dados atualizados e garantir a eficiência operacional. Além dos comandos 
 
 COPY INTO para carregamento inicial, a utilização de Snowflake Tasks e Streams pode ser implementada para automatizar a ingestão incremental de novos dados, minimizando a latência e o esforço manual. 
 
-4.1. Criação de Tabelas RAW 
+4.2. Criação de Tabelas RAW 
 
 As tabelas RAW são as primeiras a serem criadas no esquema BRONZE do Snowflake. Elas espelham a estrutura dos arquivos CSV de origem, garantindo que todos os campos sejam capturados sem perda de informação. A definição de tipos de dados apropriados é crucial nesta etapa para evitar erros durante o carregamento. Exemplos de criação de tabelas para dados de ocupação de leitos e tabelas de referência são fornecidos abaixo:
 
@@ -143,7 +145,7 @@ TP_GESTAO VARCHAR(16777216),
 ); 
 CO_CEP VARCHAR(16777216) 
 ```
-4.2. Carregamento de Dados (COPY INTO) 
+4.3. Carregamento de Dados (COPY INTO) 
 
 Após a criação das tabelas RAW, os dados são carregados a partir dos arquivos CSV localizados em stages do Snowflake. O comando COPY INTO é otimizado para carregamento em massa e oferece opções para tratamento de erros e formatação de arquivos. É importante configurar corretamente o FILE_FORMAT para garantir que os dados sejam interpretados corretamente. A opção ON_ERROR = 'CONTINUE' é particularmente útil para ambientes de desenvolvimento, permitindo que o carregamento continue mesmo que algumas linhas apresentem erros, que podem ser investigados posteriormente.
 
@@ -208,7 +210,7 @@ EMPTY_FIELD_AS_NULL = TRUE
 ON_ERROR = 'CONTINUE' 
 ); 
 ```
-4.3. Concessão de Privilégios 
+4.4. Concessão de Privilégios 
 Para que o dbt possa acessar as tabelas RAW e realizar as transformações, é necessário conceder os privilégios de leitura adequados às roles utilizadas pelo dbt no Snowflake. A segurança dos dados é primordial, e a concessão de privilégios mínimos necessários (princípio do menor privilégio) é uma prática recomendada. Neste caso, o privilégio SELECT é suficiente para que o dbt possa ler os dados das tabelas BRONZE .
 
 -- Conceder privilégios de seleção nas tabelas RAW de ocupação de leitos 
@@ -516,32 +518,11 @@ dbt Core: Instalação do dbt Core e do adaptador Snowflake ( dbt-snowflake ).
 Credenciais Snowflake: Configuração do perfil de conexão do Snowflake no arquivo profiles.yml do dbt, incluindo account , user , password , role , warehouse , database e schema . 
 Dados de Origem: Os arquivos CSV de dados brutos (ocupação de leitos, municípios, estabelecimentos CNES) devem ser carregados em um estágio (stage) no Snowflake, conforme especificado nos comandos COPY INTO . 
 
-8. Como Executar o Projeto 
-
-Siga os passos abaixo para executar o projeto dbt e transformar os dados: 
-
-8.1. Configurar o profiles.yml : Certifique-se de que seu arquivo profiles.yml (localizado geralmente em ~/.dbt/ ) esteja configurado corretamente para se conectar ao seu ambiente Snowflake. 
-yaml covid19: target: dev outputs: dev: type: snowflake account: <SUA_CONTA_SNOWFLAKE> user: <SEU_USUARIO> password: <SUA_SENHA> role: PC_DBT_ROLE # Ou a role que você configurou warehouse: <SEU_WAREHOUSE> database: COVID19 schema: DBT_DEV # Ou o esquema de desenvolvimento threads: 4 client_session_keep_alive: False 
-
-8.2. Criar Tabelas RAW e Carregar Dados: Execute os scripts SQL de criação de tabelas e carregamento de dados ( CREATE OR REPLACE TABLE e COPY INTO ) diretamente no Snowflake. Certifique-se de que os arquivos CSV estejam no estágio correto.
-
-8.3. Conceder Privilégios: Execute os comandos GRANT SELECT no Snowflake para garantir que a role do dbt tenha permissão para ler as tabelas RAW. 
-
-8.4. Instalar Dependências (se houver): Se o projeto tiver dependências de pacotes dbt, execute: bash dbt deps 
-
-8.5. Executar Modelos dbt: Navegue até o diretório raiz do projeto dbt no seu terminal e execute: 
-bash dbt run Este comando executará todos os modelos do projeto na ordem correta de dependência, criando as views e tabelas nas camadas SILVER e GOLD . 
-
-8.6. Executar Testes dbt: Para verificar a qualidade dos dados e a integridade das transformações, execute: bash dbt test Este comando executará todos os testes definidos no projeto, reportando quaisquer falhas. 
-
-8.7. Gerar Documentação dbt: Para gerar a documentação interativa do projeto (que pode ser acessada via navegador), execute: 
-bash dbt docs generate dbt docs serve O comando dbt docs serve iniciará um servidor web local que hospeda a documentação. O link para a documentação online do dbt deste projeto é: (https://cassiodataengineer.github.io/desafiofinal_trigooai/#!/overview)
-
-9. Decisões de Design e Justificativas 
+8. Decisões de Design e Justificativas 
 
 As decisões de design tomadas neste projeto foram guiadas por princípios de robustez, escalabilidade, manutenibilidade e clareza. Cada escolha, desde a arquitetura em camadas até a materialização dos modelos dbt, foi feita com o objetivo de construir um pipeline de dados eficiente e confiável para a análise de ocupação de leitos. 
 
-9.1. Arquitetura em Camadas (Bronze, Silver, Gold) 
+8.1. Arquitetura em Camadas (Bronze, Silver, Gold) 
 
 A adoção de uma arquitetura em três camadas (Bronze, Silver, Gold) é uma decisão fundamental que visa: 
 Separação de Preocupações: Cada camada tem um propósito bem definido. 
@@ -554,7 +535,7 @@ Rastreabilidade e Auditoria: A preservação dos dados brutos na camada Bronze p
 
 Performance e Custo: A materialização diferenciada em cada camada (views na Bronze para flexibilidade, tabelas na Silver e Gold para performance) otimiza o uso dos recursos do Snowflake. Views são mais flexíveis para dados brutos que mudam frequentemente, enquanto tabelas materializadas garantem consultas rápidas para dados mais estáveis e transformados. 
 
-9.2. Materialização Incremental para Fatos 
+8.2. Materialização Incremental para Fatos 
 
 A escolha da materialização incremental para o modelo de fatos ( fact_ocupacao_leitos ) é crucial para a eficiência do pipeline, especialmente em cenários com grandes volumes de dados e atualizações contínuas. As justificativas incluem: 
 
@@ -564,7 +545,7 @@ Otimização de Custos: Menos processamento significa menor consumo de créditos
 
 Frescor dos Dados: Permite que os dados sejam atualizados com maior frequência, fornecendo insights mais recentes para a tomada de decisões. 
 
-9.3. Uso de COALESCE e TRIM nos Modelos de Staging 
+8.3. Uso de COALESCE e TRIM nos Modelos de Staging 
 
 A aplicação de funções como COALESCE (para tratar valores nulos) e TRIM (para remover espaços em branco) nos modelos de staging ( stg_leito_ocupacao_XXXX.sql ) é uma decisão de design para garantir a qualidade dos dados desde as primeiras etapas: 
 
@@ -572,7 +553,7 @@ Consistência dos Dados: Garante que os valores nulos sejam tratados de forma co
 
 Facilitação de Análises: Dados limpos e padronizados são mais fáceis de analisar e integrar com outras fontes, reduzindo a necessidade de transformações adicionais nas camadas superiores. 
 
-9.4. Testes de Qualidade de Dados com dbt Tests 
+8.4. Testes de Qualidade de Dados com dbt Tests 
 
 A inclusão de testes de qualidade de dados, tanto genéricos quanto personalizados, é uma prática essencial para a confiabilidade do projeto. A justificativa para esta decisão é: 
 
@@ -584,7 +565,7 @@ Confiança nos Dados: A automação dos testes aumenta a confiança dos usuário
 
 Manutenibilidade: Ao fazer alterações no código ou nos dados de origem, os testes fornecem uma rede de segurança, alertando sobre quaisquer regressões ou introdução de novos erros. 
 
-9.5. Convenções de Nomenclatura e Organização de Pastas 
+8.5. Convenções de Nomenclatura e Organização de Pastas 
 
 Aderir às convenções de nomenclatura ( stg_ , int_ , dim_ , fact_ ) e à organização de pastas ( staging/ , intermediate/ , dimensions/ , facts/ ) é uma decisão que promove: 
 
@@ -596,7 +577,7 @@ Colaboração: Reduz a curva de aprendizado para desenvolvedores que trabalham n
 
 Essas decisões de design, em conjunto, formam a base de um pipeline de dados robusto e eficaz, capaz de entregar dados de alta qualidade para análises críticas de saúde pública. 
 
-10.1. Exemplo de Consulta e Insight Relevante 
+9. Exemplo de Consulta e Insight Relevante 
 
 Um dos insights mais relevantes que podem ser obtidos a partir dos dados transformados é a identificação de picos de ocupação de leitos de UTI por COVID-19 em diferentes regiões ao longo do tempo. Esta informação é vital para o planejamento de recursos, alocação de equipes médicas e implementação de medidas de contenção da pandemia. 
 
@@ -657,11 +638,11 @@ Otimizem o Planejamento e a Capacitação: As informações podem ser usadas par
 
 Monitorem o Desempenho Interno: Cada hospital pode usar esta análise para monitorar seu próprio desempenho ao longo do tempo, comparando-o com o de outras unidades e buscando melhorias contínuas.
 
-11. Inovação Implementada 
+10. Inovação Implementada 
 
 Este projeto incorpora diversas inovações e abordagens que o tornam robusto, eficiente e alinhado com as melhores práticas de engenharia de dados. As principais inovações implementadas incluem: 
 
-11.1. Abordagem Data-as-Code com dbt 
+11. Abordagem Data-as-Code com dbt 
 
 A utilização do dbt (data build tool) como pilar central para as transformações de dados representa uma inovação significativa. O dbt permite tratar as transformações SQL como código de software, aplicando princípios de engenharia de software ao pipeline de dados. Isso inclui: 
 
@@ -673,7 +654,7 @@ Documentação Automática: O dbt gera automaticamente uma documentação intera
 
 Modularização e Reusabilidade: As transformações são divididas em modelos modulares, que podem ser reutilizados e combinados para construir pipelines complexos de forma eficiente. Isso promove a consistência e reduz a duplicação de código. 
 
-11.2. Modelagem Dimensional Otimizada para Análise 
+11.1. Modelagem Dimensional Otimizada para Análise 
 
 A implementação de um modelo dimensional (tabelas de fatos e dimensões) na camada GOLD é uma inovação que otimiza os dados para consumo analítico. Embora a modelagem dimensional seja uma prática estabelecida, a forma como foi aplicada neste projeto, considerando a natureza dos dados de saúde pública e a necessidade de insights rápidos, é um diferencial: 
 
@@ -683,7 +664,7 @@ Facilidade de Uso: Analistas de negócio podem navegar e consultar os dados de f
 
 Flexibilidade Analítica: Permite a análise de dados sob diversas perspectivas (por tempo, localização, tipo de leito, etc.), facilitando a descoberta de insights e a criação de relatórios ad-hoc. 
 
-11.3. Automação e Orquestração com Snowflake Tasks e Streams (Potencial) 
+11.2. Automação e Orquestração com Snowflake Tasks e Streams (Potencial) 
 
 Embora o README atual mencione apenas COPY INTO para ingestão inicial, a sugestão de utilizar Snowflake Tasks e Streams para automação e orquestração incremental representa uma inovação potencial e uma melhoria significativa para um ambiente de produção: 
 
@@ -693,7 +674,7 @@ Redução de Latência: A automação da ingestão e transformação minimiza a 
 
 Eficiência Operacional: Elimina a necessidade de intervenção manual para iniciar o pipeline, liberando recursos da equipe de engenharia de dados. 
 
-11.4. Tratamento Abrangente de Dados Históricos 
+11.3. Tratamento Abrangente de Dados Históricos 
 
 A inclusão e o tratamento de dados de múltiplos anos (2020, 2021, 2022) de forma consolidada é uma inovação que permite análises de séries temporais e comparações entre diferentes períodos da pandemia. A unificação dos dados de staging ( stg_leito_ocupacao_consolidado.sql ) é um exemplo de como essa inovação foi implementada, fornecendo uma visão holística da evolução da ocupação de leitos ao longo do tempo. 
 
