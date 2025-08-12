@@ -145,7 +145,7 @@ CO_CEP VARCHAR(16777216)
 ```
 4.2. Carregamento de Dados (COPY INTO) 
 
-Após a criação das tabelas RAW, os dados são carregados a partir dos arquivos CSV localizados em estágios do Snowflake. O comando COPY INTO é otimizado para carregamento em massa e oferece opções para tratamento de erros e formatação de arquivos. É importante configurar corretamente o FILE_FORMAT para garantir que os dados sejam interpretados corretamente. A opção ON_ERROR = 'CONTINUE' é particularmente útil para ambientes de desenvolvimento, permitindo que o carregamento continue mesmo que algumas linhas apresentem erros, que podem ser investigados posteriormente.
+Após a criação das tabelas RAW, os dados são carregados a partir dos arquivos CSV localizados em stages do Snowflake. O comando COPY INTO é otimizado para carregamento em massa e oferece opções para tratamento de erros e formatação de arquivos. É importante configurar corretamente o FILE_FORMAT para garantir que os dados sejam interpretados corretamente. A opção ON_ERROR = 'CONTINUE' é particularmente útil para ambientes de desenvolvimento, permitindo que o carregamento continue mesmo que algumas linhas apresentem erros, que podem ser investigados posteriormente.
 
 -- Carregar dados para a tabela RAW_LEITO_OCUPACAO_2020 COPY INTO COVID19.BRONZE.RAW_LEITO_OCUPACAO_2020 
 ```sql
